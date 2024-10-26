@@ -1,9 +1,8 @@
-// lib/firebase.ts
-import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+// src/lib/firebase.ts
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth"; // Importe o getAuth para inicializar a autenticação
 
-// Sua configuração do Firebase
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -13,9 +12,10 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Inicializa o Firebase
-const app = initializeApp(firebaseConfig);
+// Inicialize o aplicativo Firebase
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const db = getFirestore(app);
+const auth = getAuth(app); // Inicialize a autenticação
 
-// Inicializa o Firestore e o Auth
-export const db = getFirestore(app);
-export const auth = getAuth(app);
+// Exporte tanto o db quanto o auth
+export { db, auth }; 
