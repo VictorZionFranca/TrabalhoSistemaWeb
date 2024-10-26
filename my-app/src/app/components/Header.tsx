@@ -8,7 +8,7 @@ const Header: React.FC = () => {
   const { data: session } = useSession();
 
   return (
-    <header className='flex justify-between'>
+    <header className='flex justify-between bg-blue-700'>
       <h1 className='text-2xl'>Gerenciamento de Tarefas</h1>
       <nav className='flex px-5 gap-10'>
         <Link href="/">Página Inicial</Link>
@@ -16,7 +16,7 @@ const Header: React.FC = () => {
         {session ? (
           <>
             <span>Bem-vindo, {session.user.email}</span>
-            <button onClick={() => signOut()}>Logout</button>
+            <button onClick={() => signOut()} className='bg-red-500 hover:bg-red-400'>Logout</button>
           </>
         ) : (
           <Link href="/login">Login</Link>
