@@ -2,29 +2,29 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { collection, addDoc, deleteDoc, doc, updateDoc, getDocs, query, where } from 'firebase/firestore';
-import { db } from '../../lib/firebase'; // ajuste o caminho conforme necessário
+import { db } from '../../lib/firebase';
 import { useSession } from 'next-auth/react';
 
 interface Task {
     id: string;
     title: string;
     userId: string | undefined;
-    activities: { id: string; title: string }[]; // Modificado para incluir um id na atividade
-    completed: boolean; // Adiciona uma propriedade para verificar se a tarefa está concluída
+    activities: { id: string; title: string; completed: boolean }[];
+    completed: boolean;
 }
 
 const Dashboard = () => {
     const { data: session } = useSession();
     const [tasks, setTasks] = useState<Task[]>([]);
     const [newTaskTitle, setNewTaskTitle] = useState('');
-    const [activityTitles, setActivityTitles] = useState<{ [key: string]: string }>({}); // Estado para atividades
-    const [editTaskId, setEditTaskId] = useState<string | null>(null); // Para identificar qual tarefa está sendo editada
-    const [editTaskTitle, setEditTaskTitle] = useState<string>(''); // Título da tarefa a ser editada
-    const [editActivity, setEditActivity] = useState<{ taskId: string; activityId: string; title: string } | null>(null); // Para identificar qual atividade está sendo editada
+    const [activityTitles, setActivityTitles] = useState<{ [key: string]: string }>({});
+    const [editTaskId, setEditTaskId] = useState<string | null>(null);
+    const [editTaskTitle, setEditTaskTitle] = useState<string>('');
+    const [editActivity, setEditActivity] = useState<{ taskId: string; activityId: string; title: string } | null>(null);
 
     const fetchTasks = useCallback(async () => {
         if (session) {
-            const q = query(collection(db, 'tasks'), where("userId", "==", session.user.id)); // Filtra tarefas pelo userId
+            const q = query(collection(db, 'tasks'), where("userId", "==", session.user.id));
             const querySnapshot = await getDocs(q);
             const tasksData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Task[];
             setTasks(tasksData);
@@ -44,7 +44,7 @@ const Dashboard = () => {
                 title: newTaskTitle,
                 userId: session?.user?.id,
                 activities: [],
-                completed: false, // Inicializa como não concluída
+                completed: false,
             });
             setTasks([...tasks, { id: docRef.id, title: newTaskTitle, userId: session?.user?.id, activities: [], completed: false }]);
             setNewTaskTitle('');
@@ -66,7 +66,7 @@ const Dashboard = () => {
         if (!taskId || !activityTitles[taskId]) return;
 
         const taskRef = doc(db, 'tasks', taskId);
-        const newActivity = { id: Date.now().toString(), title: activityTitles[taskId] }; // Gera um ID único para a nova atividade
+        const newActivity = { id: Date.now().toString(), title: activityTitles[taskId], completed: false };
         const updatedActivities = [...(tasks.find(task => task.id === taskId)?.activities || []), newActivity];
 
         try {
@@ -74,7 +74,7 @@ const Dashboard = () => {
                 activities: updatedActivities,
             });
             setTasks(tasks.map(task => (task.id === taskId ? { ...task, activities: updatedActivities } : task)));
-            setActivityTitles({ ...activityTitles, [taskId]: '' }); // Limpa o campo de entrada para essa tarefa
+            setActivityTitles({ ...activityTitles, [taskId]: '' });
         } catch (error) {
             console.error("Error adding activity: ", error);
         }
@@ -93,7 +93,7 @@ const Dashboard = () => {
                 activities: updatedActivities,
             });
             setTasks(tasks.map(task => (task.id === taskId ? { ...task, activities: updatedActivities } : task)));
-            setEditActivity(null); // Limpa o campo de edição
+            setEditActivity(null);
         } catch (error) {
             console.error("Error updating activity: ", error);
         }
@@ -108,23 +108,53 @@ const Dashboard = () => {
                 title: editTaskTitle,
             });
             setTasks(tasks.map(task => (task.id === taskId ? { ...task, title: editTaskTitle } : task)));
-            setEditTaskId(null); // Limpa o campo de edição
-            setEditTaskTitle(''); // Limpa o título de edição
+            setEditTaskId(null);
+            setEditTaskTitle('');
         } catch (error) {
             console.error("Error updating task title: ", error);
         }
     };
 
-    // Função para concluir uma tarefa
-    const completeTask = async (taskId: string) => {
+    const completeActivity = async (taskId: string, activityId: string) => {
         const taskRef = doc(db, 'tasks', taskId);
+        const updatedActivities = tasks.find(task => task.id === taskId)?.activities.map(activity =>
+            activity.id === activityId ? { ...activity, completed: true } : activity
+        ) || [];
+
         try {
+            await updateDoc(taskRef, {
+                activities: updatedActivities,
+            });
+            setTasks(tasks.map(task => (task.id === taskId ? { ...task, activities: updatedActivities } : task)));
+            checkTaskCompletion(taskId, updatedActivities); // Verifica se a tarefa deve ser concluída
+        } catch (error) {
+            console.error("Error completing activity: ", error);
+        }
+    };
+
+    const checkTaskCompletion = async (taskId: string, activities: { id: string; title: string; completed: boolean }[]) => {
+        const allCompleted = activities.every(activity => activity.completed);
+        const taskRef = doc(db, 'tasks', taskId);
+
+        if (allCompleted) {
             await updateDoc(taskRef, {
                 completed: true,
             });
             setTasks(tasks.map(task => (task.id === taskId ? { ...task, completed: true } : task)));
+        }
+    };
+
+    const deleteActivity = async (taskId: string, activityId: string) => {
+        const taskRef = doc(db, 'tasks', taskId);
+        const updatedActivities = tasks.find(task => task.id === taskId)?.activities.filter(activity => activity.id !== activityId) || [];
+
+        try {
+            await updateDoc(taskRef, {
+                activities: updatedActivities,
+            });
+            setTasks(tasks.map(task => (task.id === taskId ? { ...task, activities: updatedActivities } : task)));
         } catch (error) {
-            console.error("Error completing task: ", error);
+            console.error("Error deleting activity: ", error);
         }
     };
 
@@ -153,10 +183,10 @@ const Dashboard = () => {
                                 {editTaskId === task.id ? (
                                     <input
                                         type="text"
-                                        defaultValue={task.title}
+                                        value={editTaskTitle}
                                         onChange={(e) => setEditTaskTitle(e.target.value)}
+                                        placeholder="Editar Tarefa"
                                         className="border rounded p-1"
-                                        onBlur={() => updateTaskTitle(task.id)} // Salva ao sair do campo
                                     />
                                 ) : (
                                     <span>{task.title}</span>
@@ -167,14 +197,12 @@ const Dashboard = () => {
                                             Salvar
                                         </button>
                                     ) : (
-                                        <>
-                                            <button onClick={() => setEditTaskId(task.id)} className="bg-yellow-500 text-white p-1 rounded mr-2">
-                                                Editar
-                                            </button>
-                                            <button onClick={() => completeTask(task.id)} className="bg-green-500 text-white p-1 rounded mr-2">
-                                                Concluir
-                                            </button>
-                                        </>
+                                        <button onClick={() => {
+                                            setEditTaskId(task.id);
+                                            setEditTaskTitle(task.title); // Set the current title for editing
+                                        }} className="bg-yellow-500 text-white p-1 rounded mr-2">
+                                            Editar
+                                        </button>
                                     )}
                                     <button onClick={() => deleteTask(task.id)} className="bg-red-500 text-white p-1 rounded">
                                         Excluir
@@ -184,51 +212,52 @@ const Dashboard = () => {
                             <div>
                                 <input
                                     type="text"
-                                    value={activityTitles[task.id] || ''} // Controla o valor da atividade para cada tarefa
-                                    onChange={(e) => setActivityTitles({ ...activityTitles, [task.id]: e.target.value })} // Atualiza apenas a atividade da tarefa específica
+                                    value={activityTitles[task.id] || ''}
+                                    onChange={(e) => setActivityTitles({ ...activityTitles, [task.id]: e.target.value })}
                                     placeholder="Adicionar atividade"
                                     className="border rounded p-1 mt-2"
                                 />
                                 <button 
                                     onClick={() => {
-                                        addActivity(task.id); // Passa o id da tarefa para adicionar a atividade
+                                        addActivity(task.id);
                                     }} 
                                     className="bg-blue-500 text-white p-1 rounded ml-2">
                                     Adicionar Atividade
                                 </button>
                             </div>
                             {task.activities.length > 0 && (
-                                <div className="mt-2">
-                                    <h3 className="text-lg">Atividades:</h3>
+                                <div>
+                                    <h3 className="text-lg mt-2">Atividades:</h3>
                                     <ul>
                                         {task.activities.map(activity => (
-                                            <li key={activity.id} className="flex justify-between items-center border p-2 rounded mb-1">
-                                                {editActivity?.activityId === activity.id && editActivity?.taskId === task.id ? (
+                                            <li key={activity.id} className="flex justify-between items-center">
+                                                {editActivity && editActivity.activityId === activity.id ? (
                                                     <input
                                                         type="text"
-                                                        value={editActivity.title}
-                                                        onChange={(e) => setEditActivity({ ...editActivity, title: e.target.value })} // Atualiza o título da atividade em edição
-                                                        className="border rounded p-1"
+                                                        defaultValue={editActivity.title}
+                                                        onChange={(e) => setEditActivity({ ...editActivity, title: e.target.value })}
                                                         onBlur={() => updateActivity(task.id, activity.id)} // Salva ao sair do campo
+                                                        className="border rounded p-1"
                                                     />
                                                 ) : (
-                                                    <span>{activity.title}</span>
+                                                    <span className={activity.completed ? 'line-through text-gray-500' : ''}>{activity.title}</span>
                                                 )}
                                                 <div>
-                                                    {editActivity?.activityId === activity.id && editActivity?.taskId === task.id ? (
-                                                        <button onClick={() => updateActivity(task.id, activity.id)} className="bg-green-500 text-white p-1 rounded mr-2">
-                                                            Salvar
-                                                        </button>
-                                                    ) : (
-                                                        <button onClick={() => setEditActivity({ taskId: task.id, activityId: activity.id, title: activity.title })} className="bg-yellow-500 text-white p-1 rounded mr-2">
-                                                            Editar
-                                                        </button>
-                                                    )}
-                                                    <button onClick={() => {
-                                                        const updatedActivities = task.activities.filter(a => a.id !== activity.id);
-                                                        updateDoc(doc(db, 'tasks', task.id), { activities: updatedActivities }); // Atualiza o Firestore
-                                                        setTasks(tasks.map(t => t.id === task.id ? { ...t, activities: updatedActivities } : t)); // Atualiza o estado local
-                                                    }} className="bg-red-500 text-white p-1 rounded">
+                                                    <button 
+                                                        onClick={() => {
+                                                            if (!editActivity) {
+                                                                setEditActivity({ taskId: task.id, activityId: activity.id, title: activity.title });
+                                                            } else {
+                                                                setEditActivity(null);
+                                                            }
+                                                        }} 
+                                                        className="bg-yellow-500 text-white p-1 rounded mr-2">
+                                                        {editActivity && editActivity.activityId === activity.id ? 'Cancelar' : 'Editar'}
+                                                    </button>
+                                                    <button onClick={() => completeActivity(task.id, activity.id)} className="bg-green-500 text-white p-1 rounded mr-2">
+                                                        Concluir
+                                                    </button>
+                                                    <button onClick={() => deleteActivity(task.id, activity.id)} className="bg-red-500 text-white p-1 rounded">
                                                         Excluir
                                                     </button>
                                                 </div>
@@ -240,7 +269,7 @@ const Dashboard = () => {
                         </li>
                     ))
                 ) : (
-                    <li>Sem tarefas disponíveis</li>
+                    <li className="text-gray-500">Nenhuma tarefa encontrada.</li>
                 )}
             </ul>
         </div>

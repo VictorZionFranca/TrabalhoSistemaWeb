@@ -14,7 +14,7 @@ const RootLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <body>
         <SessionProvider>
           <AuthGuard>
-            <main className="h-screen">{children}</main>
+            <main className="min-h-max mb-60">{children}</main>
           </AuthGuard>
         </SessionProvider>
       </body>
