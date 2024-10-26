@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation"; // Importe o useRouter do Next.js
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const router = useRouter(); // Crie uma instância do router
+  const router = useRouter();
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -17,13 +17,13 @@ export default function LoginPage() {
     const result = await signIn("credentials", {
       email,
       password,
-      redirect: false, // Impede o redirecionamento automático
+      redirect: false, // Não redirecionar automaticamente
     });
 
     if (result?.error) {
       setError("Seu email ou sua senha estão errados!");
     } else {
-      router.push("/"); // Redireciona para a página inicial em caso de sucesso
+      router.push("/dashboard"); // Redireciona manualmente para o dashboard
     }
   };
 
@@ -55,7 +55,11 @@ export default function LoginPage() {
         </form>
 
         <button
-          onClick={() => signIn("github", { callbackUrl: "/" })} // Redireciona para a página inicial após login com GitHub
+          onClick={() =>
+            signIn("github", {
+              callbackUrl: "/dashboard", // Define a URL de redirecionamento após login com GitHub
+            })
+          }
           className="bg-gray-800 text-white p-2 rounded mt-4"
         >
           Logar com GitHub

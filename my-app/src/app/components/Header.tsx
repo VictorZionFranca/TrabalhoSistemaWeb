@@ -11,7 +11,7 @@ const Header: React.FC = () => {
     <header className='flex justify-between bg-blue-700'>
       <h1 className='text-2xl'>Gerenciamento de Tarefas</h1>
       <nav className='flex px-5 gap-10'>
-        <Link href="/">Página Inicial</Link>
+        <Link href="/dashboard">Página Inicial</Link>
         <Link href="/usuarios">Usuários</Link>
         {session ? (
           <>
