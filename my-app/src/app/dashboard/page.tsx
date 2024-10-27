@@ -20,7 +20,8 @@ const Dashboard = () => {
     const [activityTitles, setActivityTitles] = useState<{ [key: string]: string }>({});
     const [editTaskId, setEditTaskId] = useState<string | null>(null);
     const [editTaskTitle, setEditTaskTitle] = useState<string>('');
-    const [editActivity, setEditActivity] = useState<{ taskId: string; activityId: string; title: string } | null>(null);
+    const [editActivityId, setEditActivityId] = useState<{ taskId: string; activityId: string } | null>(null);
+    const [editActivityTitle, setEditActivityTitle] = useState<string>('');
 
     const fetchTasks = useCallback(async () => {
         if (session) {
@@ -81,11 +82,11 @@ const Dashboard = () => {
     };
 
     const updateActivity = async (taskId: string, activityId: string) => {
-        if (!editActivity?.title) return;
+        if (!editActivityTitle) return;
 
         const taskRef = doc(db, 'tasks', taskId);
         const updatedActivities = tasks.find(task => task.id === taskId)?.activities.map(activity =>
-            activity.id === activityId ? { ...activity, title: editActivity.title } : activity
+            activity.id === activityId ? { ...activity, title: editActivityTitle } : activity
         ) || [];
 
         try {
@@ -93,7 +94,8 @@ const Dashboard = () => {
                 activities: updatedActivities,
             });
             setTasks(tasks.map(task => (task.id === taskId ? { ...task, activities: updatedActivities } : task)));
-            setEditActivity(null);
+            setEditActivityId(null);
+            setEditActivityTitle('');
         } catch (error) {
             console.error("Error updating activity: ", error);
         }
@@ -126,7 +128,7 @@ const Dashboard = () => {
                 activities: updatedActivities,
             });
             setTasks(tasks.map(task => (task.id === taskId ? { ...task, activities: updatedActivities } : task)));
-            checkTaskCompletion(taskId, updatedActivities); // Verifica se a tarefa deve ser concluída
+            checkTaskCompletion(taskId, updatedActivities);
         } catch (error) {
             console.error("Error completing activity: ", error);
         }
@@ -141,6 +143,8 @@ const Dashboard = () => {
                 completed: true,
             });
             setTasks(tasks.map(task => (task.id === taskId ? { ...task, completed: true } : task)));
+            // Atualiza a página quando a última atividade for concluída
+            window.location.reload();
         }
     };
 
@@ -199,7 +203,7 @@ const Dashboard = () => {
                                     ) : (
                                         <button onClick={() => {
                                             setEditTaskId(task.id);
-                                            setEditTaskTitle(task.title); // Set the current title for editing
+                                            setEditTaskTitle(task.title);
                                         }} className="bg-yellow-500 text-white p-1 rounded mr-2">
                                             Editar
                                         </button>
@@ -214,53 +218,60 @@ const Dashboard = () => {
                                     type="text"
                                     value={activityTitles[task.id] || ''}
                                     onChange={(e) => setActivityTitles({ ...activityTitles, [task.id]: e.target.value })}
-                                    placeholder="Adicionar atividade"
+                                    placeholder="Nova Atividade"
                                     className="border rounded p-1 mt-2"
                                 />
-                                <button 
-                                    onClick={() => {
-                                        addActivity(task.id);
-                                    }} 
-                                    className="bg-blue-500 text-white p-1 rounded ml-2">
-                                    Adicionar Atividade
+                                <button onClick={() => addActivity(task.id)} className="bg-blue-500 text-white p-1 rounded mt-2">
+                                    Adicionar
                                 </button>
                             </div>
                             {task.activities.length > 0 && (
-                                <div>
-                                    <h3 className="text-lg mt-2">Atividades:</h3>
+                                <div className="mt-2">
                                     <ul>
                                         {task.activities.map(activity => (
-                                            <li key={activity.id} className="flex justify-between items-center">
-                                                {editActivity && editActivity.activityId === activity.id ? (
-                                                    <input
-                                                        type="text"
-                                                        defaultValue={editActivity.title}
-                                                        onChange={(e) => setEditActivity({ ...editActivity, title: e.target.value })}
-                                                        onBlur={() => updateActivity(task.id, activity.id)} // Salva ao sair do campo
-                                                        className="border rounded p-1"
-                                                    />
+                                            <li key={activity.id} className="flex justify-between items-center border-b">
+                                                {editActivityId?.taskId === task.id && editActivityId.activityId === activity.id ? (
+                                                    <div className="flex">
+                                                        <input
+                                                            type="text"
+                                                            value={editActivityTitle}
+                                                            onChange={(e) => setEditActivityTitle(e.target.value)}
+                                                            className="border rounded p-1"
+                                                        />
+                                                        <button onClick={() => updateActivity(task.id, activity.id)} className="bg-blue-500 text-white p-1 rounded">
+                                                            Salvar
+                                                        </button>
+                                                    </div>
                                                 ) : (
-                                                    <span className={activity.completed ? 'line-through text-gray-500' : ''}>{activity.title}</span>
+                                                    <>
+                                                        <span className={`${activity.completed ? 'line-through' : ''}`}>{activity.title}</span>
+                                                        <div>
+                                                            {!activity.completed && (
+                                                                <button
+                                                                    onClick={() => completeActivity(task.id, activity.id)}
+                                                                    className="bg-green-500 text-white p-1 rounded mr-2">
+                                                                    Concluir
+                                                                </button>
+                                                            )}
+                                                            {activity.completed && (
+                                                                <button
+                                                                    className="bg-gray-500 text-white p-1 rounded mr-2"
+                                                                    disabled>
+                                                                    Concluída
+                                                                </button>
+                                                            )}
+                                                            <button onClick={() => {
+                                                                setEditActivityId({ taskId: task.id, activityId: activity.id });
+                                                                setEditActivityTitle(activity.title);
+                                                            }} className="bg-yellow-500 text-white p-1 rounded mr-2">
+                                                                Editar
+                                                            </button>
+                                                            <button onClick={() => deleteActivity(task.id, activity.id)} className="bg-red-500 text-white p-1 rounded">
+                                                                Excluir
+                                                            </button>
+                                                        </div>
+                                                    </>
                                                 )}
-                                                <div>
-                                                    <button 
-                                                        onClick={() => {
-                                                            if (!editActivity) {
-                                                                setEditActivity({ taskId: task.id, activityId: activity.id, title: activity.title });
-                                                            } else {
-                                                                setEditActivity(null);
-                                                            }
-                                                        }} 
-                                                        className="bg-yellow-500 text-white p-1 rounded mr-2">
-                                                        {editActivity && editActivity.activityId === activity.id ? 'Cancelar' : 'Editar'}
-                                                    </button>
-                                                    <button onClick={() => completeActivity(task.id, activity.id)} className="bg-green-500 text-white p-1 rounded mr-2">
-                                                        Concluir
-                                                    </button>
-                                                    <button onClick={() => deleteActivity(task.id, activity.id)} className="bg-red-500 text-white p-1 rounded">
-                                                        Excluir
-                                                    </button>
-                                                </div>
                                             </li>
                                         ))}
                                     </ul>
@@ -269,7 +280,7 @@ const Dashboard = () => {
                         </li>
                     ))
                 ) : (
-                    <li className="text-gray-500">Nenhuma tarefa encontrada.</li>
+                    <p>Nenhuma tarefa encontrada.</p>
                 )}
             </ul>
         </div>
