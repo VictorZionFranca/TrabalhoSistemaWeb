@@ -1,4 +1,3 @@
-// src/app/components/Header.tsx
 "use client"; // Adicione esta linha
 
 import Link from 'next/link';
@@ -27,7 +26,7 @@ const Header: React.FC = () => {
         onClick={toggleMenu} 
         aria-label="Toggle menu"
       >
-        {isMenuOpen ? <MdClose className="w-12 h-12" /> : '☰'} {/* Aumenta o tamanho do ícone de fechar */}
+        {isMenuOpen ? <MdClose className="w-8 h-8" /> : '☰'}
       </button>
 
       <nav className={`hidden sm:flex gap-10`}>
@@ -49,31 +48,52 @@ const Header: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 z-10" onClick={closeMenu}></div>
       )}
 
-      <nav className={`flex-col sm:hidden fixed bg-blue-700 w-full h-auto z-20 top-0 left-0 items-center justify-center pt-20 ${isMenuOpen ? 'flex' : 'hidden'}`}>
+      <nav 
+        className={`flex-col sm:hidden fixed bg-blue-700 w-full z-20 top-0 left-0 items-center justify-center pt-20 transform transition-transform duration-300 ease-in-out ${isMenuOpen ? 'translate-y-0' : '-translate-y-full'}`}
+      >
         <button 
           className='absolute top-4 right-4 text-white text-2xl flex items-center justify-center w-12 h-12' 
           onClick={closeMenu}
           aria-label="Close menu"
         >
-          <MdClose className="w-8 h-8" /> {/* Aumenta o tamanho do ícone de fechar */}
+          <MdClose className="w-8 h-8" />
         </button>
-        <h2 className='text-white text-xl mb-4'>Gerenciamento de Tarefas</h2>
-        <Link href="/dashboard" className='bg-white text-blue-700 hover:bg-gray-200 border border-blue-500 rounded-lg shadow-md w-3/4 mb-4 py-4 text-center transition duration-300 ease-in-out transform hover:scale-105' onClick={closeMenu}>
-          Página Inicial
-        </Link>
-        <Link href="/usuarios" className='bg-white text-blue-700 hover:bg-gray-200 border border-blue-500 rounded-lg shadow-md w-3/4 mb-4 py-4 text-center transition duration-300 ease-in-out transform hover:scale-105' onClick={closeMenu}>
-          Usuários
-        </Link>
-        {session ? (
-          <>
-            <span className='text-white mb-4'>Bem-vindo, {session.user.email}</span>
-            <button onClick={() => { signOut(); closeMenu(); }} className='bg-red-500 hover:bg-red-400 text-white w-3/4 py-4 rounded-lg shadow-md mb-10'>
-              Logout
-            </button>
-          </>
-        ) : (
-          <Link href="/login" className='text-white hover:underline mb-4' onClick={closeMenu}>Login</Link>
-        )}
+        <h2 className='text-white text-xl mb-4 text-center w-full'>Gerenciamento de Tarefas</h2> {/* Centraliza o título */}
+        <div className="flex flex-col items-center w-full">
+          <Link 
+            href="/dashboard" 
+            className='bg-white text-blue-700 hover:bg-gray-200 border border-blue-500 rounded-lg shadow-md w-3/4 mb-4 py-4 text-center transition duration-300 ease-in-out transform hover:scale-105' 
+            onClick={closeMenu}
+          >
+            Página Inicial
+          </Link>
+          <Link 
+            href="/usuarios" 
+            className='bg-white text-blue-700 hover:bg-gray-200 border border-blue-500 rounded-lg shadow-md w-3/4 mb-4 py-4 text-center transition duration-300 ease-in-out transform hover:scale-105' 
+            onClick={closeMenu}
+          >
+            Usuários
+          </Link>
+          {session ? (
+            <>
+              <span className='text-white mb-4'>Bem-vindo, {session.user.email}</span>
+              <button 
+                onClick={() => { signOut(); closeMenu(); }} 
+                className='bg-red-500 hover:bg-red-400 text-white w-3/4 py-4 rounded-lg shadow-md mb-10'
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <Link 
+              href="/login" 
+              className='text-white hover:underline mb-4 w-3/4 text-center' 
+              onClick={closeMenu}
+            >
+              Login
+            </Link>
+          )}
+        </div>
       </nav>
     </header>
   );
