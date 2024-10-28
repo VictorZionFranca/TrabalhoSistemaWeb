@@ -1,8 +1,10 @@
+// src/app/components/Header.tsx
 "use client"; // Adicione esta linha
 
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import { useState } from 'react';
+import { MdClose } from 'react-icons/md'; // Importe o ícone de fechar
 
 const Header: React.FC = () => {
   const { data: session } = useSession();
@@ -21,11 +23,11 @@ const Header: React.FC = () => {
       <h1 className='text-2xl text-white'>Gerenciamento de Tarefas</h1>
       
       <button 
-        className='sm:hidden text-white' 
+        className='sm:hidden text-white text-2xl flex items-center justify-center w-12 h-12' 
         onClick={toggleMenu} 
         aria-label="Toggle menu"
       >
-        {isMenuOpen ? '✖️' : '☰'}
+        {isMenuOpen ? <MdClose className="w-12 h-12" /> : '☰'} {/* Aumenta o tamanho do ícone de fechar */}
       </button>
 
       <nav className={`hidden sm:flex gap-10`}>
@@ -47,18 +49,15 @@ const Header: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 z-10" onClick={closeMenu}></div>
       )}
 
-      <nav className={`flex-col sm:hidden fixed bg-blue-700 w-full z-20 top-0 left-0 items-center justify-center pt-20 ${isMenuOpen ? 'flex' : 'hidden'}`} style={{ height: isMenuOpen ? 'auto' : '0' }}>
+      <nav className={`flex-col sm:hidden fixed bg-blue-700 w-full h-auto z-20 top-0 left-0 items-center justify-center pt-20 ${isMenuOpen ? 'flex' : 'hidden'}`}>
         <button 
-          className='absolute top-4 right-4 text-white text-2xl' 
+          className='absolute top-4 right-4 text-white text-2xl flex items-center justify-center w-12 h-12' 
           onClick={closeMenu}
           aria-label="Close menu"
         >
-          ✖️
+          <MdClose className="w-8 h-8" /> {/* Aumenta o tamanho do ícone de fechar */}
         </button>
-        
-        {/* Título Adicionado Aqui */}
-        <h1 className='text-2xl text-white mb-4'>Gerenciamento de Tarefas</h1>
-
+        <h2 className='text-white text-xl mb-4'>Gerenciamento de Tarefas</h2>
         <Link href="/dashboard" className='bg-white text-blue-700 hover:bg-gray-200 border border-blue-500 rounded-lg shadow-md w-3/4 mb-4 py-4 text-center transition duration-300 ease-in-out transform hover:scale-105' onClick={closeMenu}>
           Página Inicial
         </Link>
@@ -68,7 +67,7 @@ const Header: React.FC = () => {
         {session ? (
           <>
             <span className='text-white mb-4'>Bem-vindo, {session.user.email}</span>
-            <button onClick={() => { signOut(); closeMenu(); }} className='bg-red-500 hover:bg-red-400 text-white w-3/4 py-4 rounded-lg shadow-md mb-8'>
+            <button onClick={() => { signOut(); closeMenu(); }} className='bg-red-500 hover:bg-red-400 text-white w-3/4 py-4 rounded-lg shadow-md mb-10'>
               Logout
             </button>
           </>
