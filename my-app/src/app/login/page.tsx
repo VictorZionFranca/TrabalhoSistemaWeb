@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { FaGithub } from "react-icons/fa"; // Importa o ícone do GitHub
+import { FaGithub, FaEnvelope } from "react-icons/fa"; // Importa os ícones do GitHub e de e-mail
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -52,8 +52,9 @@ export default function LoginPage() {
 
           <button 
             type="submit" 
-            className="bg-blue-500 text-white p-2 rounded w-full" // Adicione w-full para largura total
+            className="bg-blue-500 text-white p-2 rounded w-full flex items-center justify-center" // Alinha o ícone e o texto
           >
+            <FaEnvelope className="mr-2" /> {/* Ícone de e-mail com espaçamento à direita */}
             Logar com Email
           </button>
         </form>
