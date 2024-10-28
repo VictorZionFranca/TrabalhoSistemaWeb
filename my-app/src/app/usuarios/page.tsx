@@ -14,7 +14,7 @@ interface Usuario {
 }
 
 const UsuariosPage = () => {
-    const [usuarios, setUsuarios] = useState<Usuario[]>([]); // Alterado para o tipo correto
+    const [usuarios, setUsuarios] = useState<Usuario[]>([]);
     const [userEmail, setUserEmail] = useState<string | null>(null);
 
     useEffect(() => {
@@ -32,7 +32,7 @@ const UsuariosPage = () => {
         // Verifica o usuário logado
         const unsubscribe = auth.onAuthStateChanged(user => {
             if (user) {
-                setUserEmail(user.email); // Armazena o e-mail do usuário logado
+                setUserEmail(user.email);
             } else {
                 setUserEmail(null);
             }
@@ -42,16 +42,27 @@ const UsuariosPage = () => {
     }, []);
 
     return (
-        <div>
-            <h1>Usuários</h1>
-            {userEmail && <h2>Você está logado como: {userEmail}</h2>}
-            <ul>
-                {usuarios.map(usuario => (
-                    <li key={usuario.id}>
-                        {usuario.nome} - {usuario.email}
-                    </li>
-                ))}
-            </ul>
+        <div className="container mx-auto px-4 py-8">
+            <h1 className="text-3xl font-bold mb-4">Usuários</h1>
+            {userEmail && <h2 className="text-xl mb-4">Você está logado como: {userEmail}</h2>}
+            <div className="overflow-x-auto">
+                <table className="min-w-full bg-white border border-gray-300 rounded-lg shadow-md">
+                    <thead>
+                        <tr className="bg-blue-700 text-white">
+                            <th className="py-2 px-4 text-left">Nome</th>
+                            <th className="py-2 px-4 text-left">Email</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {usuarios.map(usuario => (
+                            <tr key={usuario.id} className="border-b hover:bg-gray-100">
+                                <td className="py-2 px-4">{usuario.nome}</td>
+                                <td className="py-2 px-4">{usuario.email}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 };

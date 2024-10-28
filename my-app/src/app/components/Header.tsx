@@ -56,6 +56,8 @@ const Header: React.FC = () => {
         >
           ✖️
         </button>
+        {/* Título com tamanho aumentado */}
+        <h2 className='text-white text-3xl mb-4'>Gerenciamento de Tarefas</h2> 
         <Link href="/dashboard" className='bg-white text-blue-700 hover:bg-gray-200 border border-blue-500 rounded-lg shadow-md w-3/4 mb-4 py-4 text-center transition duration-300 ease-in-out transform hover:scale-105' onClick={closeMenu}>
           Página Inicial
         </Link>
