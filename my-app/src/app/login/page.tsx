@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { FaGithub } from "react-icons/fa"; // Importa o ícone do GitHub
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const router = useRouter();
+  const router = useRouter(); // Use o hook useRouter para redirecionar
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -23,7 +24,7 @@ export default function LoginPage() {
     if (result?.error) {
       setError("Seu email ou sua senha estão errados!");
     } else {
-      router.push("/dashboard"); // Redireciona manualmente para o dashboard
+      router.push("/dashboard"); // Redireciona manualmente para a página de dashboard
     }
   };
 
@@ -49,19 +50,21 @@ export default function LoginPage() {
 
           {error && <p className="text-red-500 mt-2 text-xs">{error}</p>}
 
-          <button type="submit" className="bg-blue-500 text-white p-2 rounded">
+          <button 
+            type="submit" 
+            className="bg-blue-500 text-white p-2 rounded w-full" // Adicione w-full para largura total
+          >
             Logar com Email
           </button>
         </form>
 
         <button
           onClick={() =>
-            signIn("github", {
-              callbackUrl: "/dashboard", // Define a URL de redirecionamento após login com GitHub
-            })
+            signIn("github", { callbackUrl: "/dashboard" }) // Redireciona para /dashboard após login com GitHub
           }
-          className="bg-gray-800 text-white p-2 rounded mt-4"
+          className="bg-gray-800 text-white p-2 rounded w-full flex items-center justify-center mt-4" // w-full e flex para alinhar o ícone
         >
+          <FaGithub className="mr-2" /> {/* Ícone do GitHub com espaçamento à direita */}
           Logar com GitHub
         </button>
       </div>
