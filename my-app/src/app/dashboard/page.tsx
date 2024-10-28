@@ -171,9 +171,9 @@ const Dashboard = () => {
                     value={newTaskTitle}
                     onChange={(e) => setNewTaskTitle(e.target.value)}
                     placeholder="Nova Tarefa"
-                    className="border rounded p-2"
+                    className="border rounded p-2 w-full"
                 />
-                <button type="submit" className="bg-blue-500 text-white p-2 rounded">
+                <button type="submit" className="bg-blue-500 text-white p-2 rounded mt-2">
                     Adicionar
                 </button>
             </form>
@@ -182,7 +182,7 @@ const Dashboard = () => {
             <ul>
                 {tasks.length > 0 ? (
                     tasks.map(task => (
-                        <li key={task.id} className={`border p-2 rounded mb-2 ${task.completed ? 'bg-green-200' : ''}`}>
+                        <li key={task.id} className={`border p-2 rounded mb-2 ${task.completed ? 'bg-green-200 line-through' : ''}`}>
                             <div className="flex justify-between">
                                 {editTaskId === task.id ? (
                                     <input
@@ -190,10 +190,10 @@ const Dashboard = () => {
                                         value={editTaskTitle}
                                         onChange={(e) => setEditTaskTitle(e.target.value)}
                                         placeholder="Editar Tarefa"
-                                        className="border rounded p-1"
+                                        className="border rounded p-1 flex-grow mr-2"
                                     />
                                 ) : (
-                                    <span>{task.title}</span>
+                                    <span className={`${task.completed ? 'line-through' : ''}`}>{task.title}</span>
                                 )}
                                 <div>
                                     {editTaskId === task.id ? (
@@ -219,68 +219,52 @@ const Dashboard = () => {
                                     value={activityTitles[task.id] || ''}
                                     onChange={(e) => setActivityTitles({ ...activityTitles, [task.id]: e.target.value })}
                                     placeholder="Nova Atividade"
-                                    className="border rounded p-1 mt-2"
+                                    className="border rounded p-1 mt-2 w-full"
                                 />
                                 <button onClick={() => addActivity(task.id)} className="bg-blue-500 text-white p-1 rounded mt-2">
-                                    Adicionar
+                                    Adicionar Atividade
                                 </button>
-                            </div>
-                            {task.activities.length > 0 && (
-                                <div className="mt-2">
-                                    <ul>
-                                        {task.activities.map(activity => (
-                                            <li key={activity.id} className="flex justify-between items-center border-b">
-                                                {editActivityId?.taskId === task.id && editActivityId.activityId === activity.id ? (
-                                                    <div className="flex">
-                                                        <input
-                                                            type="text"
-                                                            value={editActivityTitle}
-                                                            onChange={(e) => setEditActivityTitle(e.target.value)}
-                                                            className="border rounded p-1"
-                                                        />
-                                                        <button onClick={() => updateActivity(task.id, activity.id)} className="bg-blue-500 text-white p-1 rounded">
-                                                            Salvar
-                                                        </button>
-                                                    </div>
+                                <ul className="mt-2">
+                                    {task.activities.map(activity => (
+                                        <li key={activity.id} className={`flex justify-between items-center border p-2 rounded mb-2 ${activity.completed ? 'bg-green-100 line-through' : ''}`}>
+                                            {editActivityId?.activityId === activity.id && editActivityId?.taskId === task.id ? (
+                                                <input
+                                                    type="text"
+                                                    value={editActivityTitle}
+                                                    onChange={(e) => setEditActivityTitle(e.target.value)}
+                                                    className="border rounded p-1 flex-grow mr-2"
+                                                />
+                                            ) : (
+                                                <span className={`${activity.completed ? 'line-through' : ''} flex-grow`}>{activity.title}</span>
+                                            )}
+                                            <div>
+                                                {editActivityId?.activityId === activity.id && editActivityId?.taskId === task.id ? (
+                                                    <button onClick={() => updateActivity(task.id, activity.id)} className="bg-green-500 text-white p-1 rounded mr-2">
+                                                        Salvar
+                                                    </button>
                                                 ) : (
-                                                    <>
-                                                        <span className={`${activity.completed ? 'line-through' : ''}`}>{activity.title}</span>
-                                                        <div>
-                                                            {!activity.completed && (
-                                                                <button
-                                                                    onClick={() => completeActivity(task.id, activity.id)}
-                                                                    className="bg-green-500 text-white p-1 rounded mr-2">
-                                                                    Concluir
-                                                                </button>
-                                                            )}
-                                                            {activity.completed && (
-                                                                <button
-                                                                    className="bg-gray-500 text-white p-1 rounded mr-2"
-                                                                    disabled>
-                                                                    Concluída
-                                                                </button>
-                                                            )}
-                                                            <button onClick={() => {
-                                                                setEditActivityId({ taskId: task.id, activityId: activity.id });
-                                                                setEditActivityTitle(activity.title);
-                                                            }} className="bg-yellow-500 text-white p-1 rounded mr-2">
-                                                                Editar
-                                                            </button>
-                                                            <button onClick={() => deleteActivity(task.id, activity.id)} className="bg-red-500 text-white p-1 rounded">
-                                                                Excluir
-                                                            </button>
-                                                        </div>
-                                                    </>
+                                                    <button onClick={() => {
+                                                        setEditActivityId({ taskId: task.id, activityId: activity.id });
+                                                        setEditActivityTitle(activity.title);
+                                                    }} className="bg-yellow-500 text-white p-1 rounded mr-2">
+                                                        Editar
+                                                    </button>
                                                 )}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
+                                                <button onClick={() => completeActivity(task.id, activity.id)} className="bg-blue-500 text-white p-1 rounded mr-2">
+                                                    Concluir
+                                                </button>
+                                                <button onClick={() => deleteActivity(task.id, activity.id)} className="bg-red-500 text-white p-1 rounded">
+                                                    Excluir
+                                                </button>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
                         </li>
                     ))
                 ) : (
-                    <p>Nenhuma tarefa encontrada.</p>
+                    <li className="border p-2 rounded">Nenhuma tarefa encontrada.</li>
                 )}
             </ul>
         </div>
