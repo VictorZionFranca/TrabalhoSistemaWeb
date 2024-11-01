@@ -70,15 +70,14 @@ const Dashboard = () => {
         const newActivity = { id: Date.now().toString(), title: activityTitles[taskId], completed: false };
         const updatedActivities = [...(tasks.find(task => task.id === taskId)?.activities || []), newActivity];
 
-        try {
-            await updateDoc(taskRef, {
-                activities: updatedActivities,
-            });
-            setTasks(tasks.map(task => (task.id === taskId ? { ...task, activities: updatedActivities } : task)));
-            setActivityTitles({ ...activityTitles, [taskId]: '' });
-        } catch (error) {
-            console.error("Error adding activity: ", error);
-        }
+        // Define the task as not completed when adding a new activity
+        await updateDoc(taskRef, {
+            activities: updatedActivities,
+            completed: false,
+        });
+
+        setTasks(tasks.map(task => (task.id === taskId ? { ...task, activities: updatedActivities, completed: false } : task)));
+        setActivityTitles({ ...activityTitles, [taskId]: '' });
     };
 
     const updateActivity = async (taskId: string, activityId: string) => {
@@ -143,7 +142,6 @@ const Dashboard = () => {
                 completed: true,
             });
             setTasks(tasks.map(task => (task.id === taskId ? { ...task, completed: true } : task)));
-            // Atualiza a página quando a última atividade for concluída
             window.location.reload();
         }
     };
@@ -160,6 +158,11 @@ const Dashboard = () => {
         } catch (error) {
             console.error("Error deleting activity: ", error);
         }
+    };
+
+    const calculateCompletionPercentage = (activities: { completed: boolean }[]) => {
+        const completedCount = activities.filter(activity => activity.completed).length;
+        return Math.floor((completedCount / activities.length) * 100) || 0;
     };
 
     return (
@@ -182,7 +185,7 @@ const Dashboard = () => {
             <ul>
                 {tasks.length > 0 ? (
                     tasks.map(task => (
-                        <li key={task.id} className={`border p-2 rounded mb-2 ${task.completed ? 'bg-green-200 line-through' : ''}`}>
+                        <li key={task.id} className={`border p-2 rounded mb-2 ${task.completed ? 'bg-green-200' : ''}`}>
                             <div className="flex justify-between">
                                 {editTaskId === task.id ? (
                                     <input
@@ -193,7 +196,7 @@ const Dashboard = () => {
                                         className="border rounded p-1 flex-grow mr-2"
                                     />
                                 ) : (
-                                    <span className={`${task.completed ? 'line-through' : ''}`}>{task.title}</span>
+                                    <span>{task.title}</span>
                                 )}
                                 <div>
                                     {editTaskId === task.id ? (
@@ -213,58 +216,68 @@ const Dashboard = () => {
                                     </button>
                                 </div>
                             </div>
-                            <div>
+                            {/* Porcentagem de conclusão abaixo do título da tarefa */}
+                            <div className="text-sm text-gray-600 mt-1">
+                                {calculateCompletionPercentage(task.activities)}% concluído
+                            </div>
+                            <div className="mt-2">
                                 <input
                                     type="text"
                                     value={activityTitles[task.id] || ''}
                                     onChange={(e) => setActivityTitles({ ...activityTitles, [task.id]: e.target.value })}
                                     placeholder="Nova Atividade"
-                                    className="border rounded p-1 mt-2 w-full"
+                                    className="border rounded p-2 w-full mt-2"
                                 />
-                                <button onClick={() => addActivity(task.id)} className="bg-blue-500 text-white p-1 rounded mt-2">
+                                <button onClick={() => addActivity(task.id)} className="bg-blue-500 text-white p-2 rounded mt-2">
                                     Adicionar Atividade
                                 </button>
-                                <ul className="mt-2">
-                                    {task.activities.map(activity => (
-                                        <li key={activity.id} className={`flex justify-between items-center border p-2 rounded mb-2 ${activity.completed ? 'bg-green-100 line-through' : ''}`}>
-                                            {editActivityId?.activityId === activity.id && editActivityId?.taskId === task.id ? (
+                            </div>
+                            <ul>
+                                {task.activities.map(activity => (
+                                    <li key={activity.id} className="flex justify-between mt-2">
+                                        <span className={`${activity.completed ? 'line-through text-gray-500' : ''}`}>
+                                            {editActivityId && editActivityId.taskId === task.id && editActivityId.activityId === activity.id ? (
                                                 <input
                                                     type="text"
                                                     value={editActivityTitle}
                                                     onChange={(e) => setEditActivityTitle(e.target.value)}
-                                                    className="border rounded p-1 flex-grow mr-2"
+                                                    className="border rounded p-1 mr-2"
                                                 />
                                             ) : (
-                                                <span className={`${activity.completed ? 'line-through' : ''} flex-grow`}>{activity.title}</span>
+                                                activity.title
                                             )}
-                                            <div>
-                                                {editActivityId?.activityId === activity.id && editActivityId?.taskId === task.id ? (
-                                                    <button onClick={() => updateActivity(task.id, activity.id)} className="bg-green-500 text-white p-1 rounded mr-2">
-                                                        Salvar
-                                                    </button>
-                                                ) : (
+                                        </span>
+                                        <div>
+                                            {editActivityId && editActivityId.taskId === task.id && editActivityId.activityId === activity.id ? (
+                                                <button onClick={() => updateActivity(task.id, activity.id)} className="bg-green-500 text-white p-1 rounded mr-2">
+                                                    Salvar
+                                                </button>
+                                            ) : (
+                                                <>
                                                     <button onClick={() => {
                                                         setEditActivityId({ taskId: task.id, activityId: activity.id });
                                                         setEditActivityTitle(activity.title);
                                                     }} className="bg-yellow-500 text-white p-1 rounded mr-2">
                                                         Editar
                                                     </button>
-                                                )}
-                                                <button onClick={() => completeActivity(task.id, activity.id)} className="bg-blue-500 text-white p-1 rounded mr-2">
-                                                    Concluir
-                                                </button>
-                                                <button onClick={() => deleteActivity(task.id, activity.id)} className="bg-red-500 text-white p-1 rounded">
-                                                    Excluir
-                                                </button>
-                                            </div>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
+                                                    <button onClick={() => deleteActivity(task.id, activity.id)} className="bg-red-500 text-white p-1 rounded mr-2">
+                                                        Excluir
+                                                    </button>
+                                                    {!activity.completed && (
+                                                        <button onClick={() => completeActivity(task.id, activity.id)} className="bg-blue-500 text-white p-1 rounded">
+                                                            Concluir
+                                                        </button>
+                                                    )}
+                                                </>
+                                            )}
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
                         </li>
                     ))
                 ) : (
-                    <li className="border p-2 rounded">Nenhuma tarefa encontrada.</li>
+                    <p>Nenhuma tarefa encontrada.</p>
                 )}
             </ul>
         </div>
