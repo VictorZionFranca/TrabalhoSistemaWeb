@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { collection, addDoc, deleteDoc, doc, updateDoc, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useSession } from 'next-auth/react';
+import { FiEdit, FiTrash, FiSave, FiCheck } from 'react-icons/fi';
 
 interface Task {
     id: string;
@@ -70,7 +71,6 @@ const Dashboard = () => {
         const newActivity = { id: Date.now().toString(), title: activityTitles[taskId], completed: false };
         const updatedActivities = [...(tasks.find(task => task.id === taskId)?.activities || []), newActivity];
 
-        // Define the task as not completed when adding a new activity
         await updateDoc(taskRef, {
             activities: updatedActivities,
             completed: false,
@@ -198,25 +198,24 @@ const Dashboard = () => {
                                 ) : (
                                     <span>{task.title}</span>
                                 )}
-                                <div>
+                                <div className="flex space-x-2">
                                     {editTaskId === task.id ? (
-                                        <button onClick={() => updateTaskTitle(task.id)} className="bg-green-500 text-white p-1 rounded mr-2">
-                                            Salvar
+                                        <button onClick={() => updateTaskTitle(task.id)} className="text-green-500 p-2">
+                                            <FiSave size={20} />
                                         </button>
                                     ) : (
                                         <button onClick={() => {
                                             setEditTaskId(task.id);
                                             setEditTaskTitle(task.title);
-                                        }} className="bg-yellow-500 text-white p-1 rounded mr-2">
-                                            Editar
+                                        }} className="text-yellow-500 p-2">
+                                            <FiEdit size={20} />
                                         </button>
                                     )}
-                                    <button onClick={() => deleteTask(task.id)} className="bg-red-500 text-white p-1 rounded">
-                                        Excluir
+                                    <button onClick={() => deleteTask(task.id)} className="text-red-500 p-2">
+                                        <FiTrash size={20} />
                                     </button>
                                 </div>
                             </div>
-                            {/* Porcentagem de conclusão abaixo do título da tarefa */}
                             <div className="text-sm text-gray-600 mt-1">
                                 {calculateCompletionPercentage(task.activities)}% concluído
                             </div>
@@ -226,50 +225,45 @@ const Dashboard = () => {
                                     value={activityTitles[task.id] || ''}
                                     onChange={(e) => setActivityTitles({ ...activityTitles, [task.id]: e.target.value })}
                                     placeholder="Nova Atividade"
-                                    className="border rounded p-2 w-full mt-2"
+                                    className="border rounded p-1 w-full"
                                 />
-                                <button onClick={() => addActivity(task.id)} className="bg-blue-500 text-white p-2 rounded mt-2">
+                                <button onClick={() => addActivity(task.id)} className="bg-blue-500 text-white p-1 rounded mt-1">
                                     Adicionar Atividade
                                 </button>
                             </div>
                             <ul>
                                 {task.activities.map(activity => (
-                                    <li key={activity.id} className="flex justify-between mt-2">
-                                        <span className={`${activity.completed ? 'line-through text-gray-500' : ''}`}>
-                                            {editActivityId && editActivityId.taskId === task.id && editActivityId.activityId === activity.id ? (
-                                                <input
-                                                    type="text"
-                                                    value={editActivityTitle}
-                                                    onChange={(e) => setEditActivityTitle(e.target.value)}
-                                                    className="border rounded p-1 mr-2"
-                                                />
-                                            ) : (
-                                                activity.title
-                                            )}
-                                        </span>
-                                        <div>
-                                            {editActivityId && editActivityId.taskId === task.id && editActivityId.activityId === activity.id ? (
-                                                <button onClick={() => updateActivity(task.id, activity.id)} className="bg-green-500 text-white p-1 rounded mr-2">
-                                                    Salvar
+                                    <li key={activity.id} className="flex justify-between items-center border-b py-1">
+                                        {editActivityId?.activityId === activity.id && editActivityId?.taskId === task.id ? (
+                                            <input
+                                                type="text"
+                                                value={editActivityTitle}
+                                                onChange={(e) => setEditActivityTitle(e.target.value)}
+                                                placeholder="Editar Atividade"
+                                                className="border rounded p-1 flex-grow mr-2"
+                                            />
+                                        ) : (
+                                            <span className={activity.completed ? 'line-through' : ''}>{activity.title}</span>
+                                        )}
+                                        <div className="flex space-x-2">
+                                            {editActivityId?.activityId === activity.id && editActivityId?.taskId === task.id ? (
+                                                <button onClick={() => updateActivity(task.id, activity.id)} className="text-green-500 p-2">
+                                                    <FiSave size={20} />
                                                 </button>
                                             ) : (
-                                                <>
-                                                    <button onClick={() => {
-                                                        setEditActivityId({ taskId: task.id, activityId: activity.id });
-                                                        setEditActivityTitle(activity.title);
-                                                    }} className="bg-yellow-500 text-white p-1 rounded mr-2">
-                                                        Editar
-                                                    </button>
-                                                    <button onClick={() => deleteActivity(task.id, activity.id)} className="bg-red-500 text-white p-1 rounded mr-2">
-                                                        Excluir
-                                                    </button>
-                                                    {!activity.completed && (
-                                                        <button onClick={() => completeActivity(task.id, activity.id)} className="bg-blue-500 text-white p-1 rounded">
-                                                            Concluir
-                                                        </button>
-                                                    )}
-                                                </>
+                                                <button onClick={() => {
+                                                    setEditActivityId({ taskId: task.id, activityId: activity.id });
+                                                    setEditActivityTitle(activity.title);
+                                                }} className="text-yellow-500 p-2">
+                                                    <FiEdit size={20} />
+                                                </button>
                                             )}
+                                            <button onClick={() => completeActivity(task.id, activity.id)} className="text-green-500 p-2">
+                                                <FiCheck size={20} />
+                                            </button>
+                                            <button onClick={() => deleteActivity(task.id, activity.id)} className="text-red-500 p-2">
+                                                <FiTrash size={20} />
+                                            </button>
                                         </div>
                                     </li>
                                 ))}
@@ -277,7 +271,7 @@ const Dashboard = () => {
                         </li>
                     ))
                 ) : (
-                    <p>Nenhuma tarefa encontrada.</p>
+                    <p>Nenhuma tarefa adicionada ainda.</p>
                 )}
             </ul>
         </div>
