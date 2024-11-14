@@ -200,18 +200,18 @@ const Dashboard = () => {
                                 )}
                                 <div className="flex space-x-2">
                                     {editTaskId === task.id ? (
-                                        <button onClick={() => updateTaskTitle(task.id)} className="text-green-500 p-2">
+                                        <button onClick={() => updateTaskTitle(task.id)} className="bg-green-500 p-2">
                                             <FiSave size={20} />
                                         </button>
                                     ) : (
                                         <button onClick={() => {
                                             setEditTaskId(task.id);
                                             setEditTaskTitle(task.title);
-                                        }} className="text-yellow-500 p-2">
+                                        }} className="bg-yellow-500 p-2">
                                             <FiEdit size={20} />
                                         </button>
                                     )}
-                                    <button onClick={() => deleteTask(task.id)} className="text-red-500 p-2">
+                                    <button onClick={() => deleteTask(task.id)} className="bg-red-500 p-2">
                                         <FiTrash size={20} />
                                     </button>
                                 </div>
@@ -247,21 +247,21 @@ const Dashboard = () => {
                                         )}
                                         <div className="flex space-x-2">
                                             {editActivityId?.activityId === activity.id && editActivityId?.taskId === task.id ? (
-                                                <button onClick={() => updateActivity(task.id, activity.id)} className="text-green-500 p-2">
+                                                <button onClick={() => updateActivity(task.id, activity.id)} className="bg-green-500 p-2">
                                                     <FiSave size={20} />
                                                 </button>
                                             ) : (
                                                 <button onClick={() => {
                                                     setEditActivityId({ taskId: task.id, activityId: activity.id });
                                                     setEditActivityTitle(activity.title);
-                                                }} className="text-yellow-500 p-2">
+                                                }} className="bg-yellow-500 p-2">
                                                     <FiEdit size={20} />
                                                 </button>
                                             )}
-                                            <button onClick={() => completeActivity(task.id, activity.id)} className="text-green-500 p-2">
+                                            <button onClick={() => completeActivity(task.id, activity.id)} className=" p-2 bg-green-500">
                                                 <FiCheck size={20} />
                                             </button>
-                                            <button onClick={() => deleteActivity(task.id, activity.id)} className="text-red-500 p-2">
+                                            <button onClick={() => deleteActivity(task.id, activity.id)} className="bg-red-500 p-2">
                                                 <FiTrash size={20} />
                                             </button>
                                         </div>
